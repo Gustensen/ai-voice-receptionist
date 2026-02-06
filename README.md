@@ -12,7 +12,7 @@ A high-leverage voice agent system built to automate lead qualification and pric
 ```bash
 python -m venv venv
 # Windows:
-.\venv\Scripts\activate
+.\\venv\\Scripts\\Activate.ps1
 # Mac:
 source venv/bin/activate
 pip install fastapi uvicorn
