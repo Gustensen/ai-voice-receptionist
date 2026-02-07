@@ -1,32 +1,51 @@
-# 1. We import FastAPI to build the server and "app" to initialize it.
-from fastapi import FastAPI
+# We import FastAPI to build the server and "app" to initialize it.
+from fastapi import FastAPI, Header, HTTPException
+from schemas import VapiPayload
+import json
 
 app = FastAPI()
 
-# 2. A 'GET' route for a health check. This tells us the server is "alive".
+# A 'GET' route for a health check. This tells us the server is "alive".
 @app.get("/")
 def health_check():
     return {"status": "AI Receptionist Online"}
 
-# 3. A 'POST' route because the AI (Vapi) will "SEND" us data to process.
-# We use Type Hinting (service_name: str) to ensure the AI doesn't send junk.
+# A 'POST' route because the AI (Vapi) will "SEND" us data to process.
+# We use Type Hinting to ensure the AI doesn't send junk.
 @app.post("/check-price")
-def get_service_price(service_name: str):
+async def handle_vapi_tool_call(payload: VapiPayload, x_vapi_secret: str = Header(None)):
+    if x_vapi_secret != "your-super-long-random-string":
+        raise HTTPException(status_code=401, detail="Unauthorized")
     
-    # 4. We store prices in a Dictionary for easy lookup.
-    # Keys are lowercase to make searching easier.
-    prices = {
+    tool_call = payload.message.toolCallList[0]  
+    
+    # Unwrap the arguments
+    args = json.loads(tool_call.function.arguments)
+    # Get the service name  and Default to empty string if not provided
+    service = args.get("service_name", "").lower()  
+
+    # Pricing Database: A simple dictionary to hold our service prices.
+    pricing_sheet = {
         "leak": 150, 
         "clog": 200, 
         "heater": 500
     }
     
-    # 5. We use .get() instead of prices[service_name]. 
-    # Why? If the service isn't found, .get() returns "None" instead of crashing.
-    result = prices.get(service_name.lower())
+    # Lookup Logic
+    price = pricing_sheet.get(service)
     
-    # 6. Logic Gate: If price exists, return it. If not, give a fallback.
-    if result:
-        return {"price": f"${result}", "found": True}
+    # Logic Gate: If price exists, return it. If not, give a fallback.
+    if price:
+        response_sheet = f"The price for fixing that {service} is ${price}."
     else:
-        return {"price": "Custom quote needed", "found": False}
+        response_sheet = "I'll need to have a technician provide a custom quote for that specific issue."
+        
+    # Return the response in a format Vapi expects with the associated call id and response for that call.
+    return {
+        "results" :[
+            {
+                "toolCallId": tool_call.id,
+                "result": response_sheet
+            }
+        ]
+    }
