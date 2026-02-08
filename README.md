@@ -1,5 +1,5 @@
 # 🤖 AI Voice Receptionist
-A high-leverage voice agent system built to automate lead qualification and pricing for local trades.
+A high-leverage voice agent system built to automate lead qualification and pricing for small businesses.
 
 ## 🛠️ System Architecture
 -User speaks to the AI.
