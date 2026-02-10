@@ -13,10 +13,7 @@ def health_check():
 # A 'POST' route because the AI (Vapi) will "SEND" us data to process.
 # We use Type Hinting to ensure the AI doesn't send junk.
 @app.post("/check-price")
-async def handle_vapi_tool_call(payload: VapiPayload, x_vapi_secret: str = Header(None)):
-    if x_vapi_secret != "your-super-long-random-string":
-        raise HTTPException(status_code=401, detail="Unauthorized")
-    
+async def handle_vapi_tool_call(payload: VapiPayload):
     tool_call = payload.message.toolCallList[0]  
     
     # Unwrap the arguments
