@@ -1,10 +1,29 @@
-# 🤖 AI Voice Receptionist (HVAC/Plumbing)
-A high-leverage voice agent system built to automate lead qualification and pricing for local trades.
+# 🤖 AI Voice Receptionist
+A high-leverage voice agent system built to automate lead qualification and pricing for small businesses.
 
 ## 🛠️ System Architecture
+- **User speaks to the AI.**
+- **Vapi transcribes the voice and detects a "Tool Call" intent.**
+- **Vapi sends a POST request with a nested JSON payload.**
+- **FastAPI validates the payload via Pydantic.**
+- **Logic Engine calculates the price and returns a structured response.**
+- **Vapi speaks the price back to the User in under 1 second.**
+
+## Technical Stack
 - **Backend:** FastAPI (Python 3.10+)
 - **Tunneling:** ngrok (Secure Global Exposure)
 - **AI Brain:** Vapi.ai (Function Calling & Latency Management)
+- **Validation:** Pydantic for strict runtime data validation and schema enforcement.
+
+## Key Features & Edge Case Handling
+- **Dynamic Pricing Engine: A dictionary-based lookup system with $O(1)$ complexity for instant price retrieval.**
+- **Graceful Fallbacks: Logic-gate implementation for "Unknown Services," directing users to custom quotes rather than returning system errors.**
+- **Asynchronous Processing: Built with async def to ensure the voice conversation remains fluid without blocking threads.**
+
+## Challenges & Solutions
+- **Problem: ngrok Free Tier browser warnings causing HTTP 401 errors for the AI Agent.**
+- **Solution: Implemented the ngrok-skip-browser-warning header within the Vapi Tool configuration to allow seamless machine-to-machine communication.**
+
 
 ## 🚀 Execution Commands
 
