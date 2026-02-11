@@ -38,9 +38,7 @@ pip install fastapi uvicorn
 
 
 2. Fire Up the Backend
-Bash
 uvicorn main:app --reload
 
-3. Launch Secure Tunnel
-Bash
-ngrok http 8000 --basic-auth "username:password"
+3. Launch Ngrok Tunnel
+ngrok http 8000
