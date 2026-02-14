@@ -1,19 +1,19 @@
 from pydantic import BaseModel
-from typing import List, Dict, Any
+from typing import List, Optional
 
 # Data incoming from the Vapi payload. We need to match this structure to parse it correctly.
-class FunctionCall(BaseModel):
+class ToolFunction(BaseModel):
     name : str
-    arguments:str
+    arguments: dict
     
 class ToolCall(BaseModel):
     id: str
+    function: ToolFunction
+    
+class VapiMessage(BaseModel):
     type: str
-    function: FunctionCall
-    
-class Message(BaseModel):
-    toolCallList: List[ToolCall]
-    
+    toolCalls: Optional[List[ToolCall]] = None 
+
 class VapiPayload(BaseModel):
-    message: Message
+    message: VapiMessage
     

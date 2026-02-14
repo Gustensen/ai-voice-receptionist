@@ -14,40 +14,43 @@ def health_check():
 # We use Type Hinting to ensure the AI doesn't send junk.
 @app.post("/check-price")
 async def handle_vapi_tool_call(payload: VapiPayload, x_vapi_secret: str = Header(None)):
-    # 1. SECURITY GATE: Only Vapi knows this secret
-    if x_vapi_secret != "plumber123":
-        print("Unauthorized attempt blocked!")
-        raise HTTPException(status_code=401, detail="Invalid Secret")
-    
-    tool_call = payload.message.toolCallList[0]  
-    
-    # Unwrap the arguments
-    args = json.loads(tool_call.function.arguments)
-    # Get the service name  and Default to empty string if not provided
-    service = args.get("service_name", "").lower()  
 
-    # Pricing Database: A simple dictionary to hold our service prices.
-    pricing_sheet = {
-        "leak": 150, 
-        "clog": 200, 
-        "heater": 500
-    }
-    
-    # Lookup Logic
-    price = pricing_sheet.get(service)
-    
-    # Logic Gate: If price exists, return it. If not, give a fallback.
-    if price:
-        response_sheet = f"The price for fixing that {service} is ${price}."
-    else:
-        response_sheet = "I'll need to have a technician provide a custom quote for that specific issue."
+    # 1. Skip security for non-tool calls (Status updates, etc.)
+    if payload.message.type != "tool-calls":
+        return {"status": "success"}
+
+    # 2. Strict Security for actual Tool Calls
+    if x_vapi_secret != "plumber123":
+        print(f"BLOCKING: Secret was {x_vapi_secret}")
+        raise HTTPException(status_code=401)
+    # 3. Extract the data using the RAW structure we just saw
+    try:
         
-    # Return the response in a format Vapi expects with the associated call id and response for that call.
-    return {
-        "results" :[
-            {
-                "toolCallId": tool_call.id,
-                "result": response_sheet
-            }
-        ]
-    }
+        if not payload.message.toolCalls:
+             return {"results": []}
+
+        tool_call = payload.message.toolCalls[0]
+        tool_call_id = tool_call.id
+        
+        # Vapi sends arguments as a dictionary already in this version!
+        service = tool_call.function.arguments.get("service_name", "").lower()
+
+        pricing_sheet = {"leak": 150, "clog": 200, "heater": 500}
+        price = pricing_sheet.get(service)
+
+        if price:
+            result = f"The price for fixing that {service} is ${price}."
+        else:
+            result = "I'll need to have a technician provide a custom quote for that specific issue."
+
+        return {
+            "results": [
+                {
+                    "toolCallId": tool_call_id,
+                    "result": result
+                }
+            ]
+        }
+    except Exception as e:
+        print(f"Logic Error: {e}")
+        return {"error": "Failed to process tool call"}, 500
