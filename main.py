@@ -1,7 +1,6 @@
 # We import FastAPI to build the server and "app" to initialize it.
 from fastapi import FastAPI, Header, HTTPException
 from schemas import VapiPayload
-import json
 
 app = FastAPI()
 
@@ -38,8 +37,28 @@ async def handle_vapi_tool_call(payload: VapiPayload, x_vapi_secret: str = Heade
         pricing_sheet = {"leak": 150, "clog": 200, "heater": 500}
         price = pricing_sheet.get(service)
 
+        # New Keyword Matching logic with negative handling
+        price = None
+        matched_keyword = None
+        #negation_words = ["no", "not", "don't", "dont", "wasn't", "wont"]
+        #words = service.split()
+        
+        for keyword in pricing_sheet:
+            if keyword in service:
+                # Check for 3 words before the keyword for negation
+                #keyword_parts = words(keyword)[0].split()
+                #recent_context = keyword_parts[-3:]  # Get the last 3 words before the keyword
+                #if any(neg in recent_context for neg in negation_words):
+                    #print(f"Negation found near {keyword}, skipping...")
+                    #continue  # Skip this keyword if negation is found
+                
+                price = pricing_sheet[keyword]
+                matched_keyword = keyword
+                break
+        
+        
         if price:
-            result = f"The price for fixing that {service} is ${price}."
+            result = f"The price for fixing that {matched_keyword} is ${price}."
         else:
             result = "I'll need to have a technician provide a custom quote for that specific issue."
 
