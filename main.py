@@ -56,6 +56,8 @@ async def handle_vapi_tool_call(payload: VapiPayload, x_vapi_secret: str = Heade
             
             # SAVE TO DATABASE
             save_lead(customer_name, customer_phone, service, price)
+            # FUTURE TASK: Trigger SMS via Twilio
+            # print(f"DEBUG: I should send an SMS to {customer_phone} now.")
             result = f"The price for fixing that {matched_keyword} is ${price}."
         else:
             result = "I'll need to have a technician provide a custom quote for that specific issue."
